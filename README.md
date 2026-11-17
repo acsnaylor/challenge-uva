@@ -10,6 +10,10 @@ A versão anterior às melhorias está no commit `87e3ef8`. Cada melhoria desta 
 
 **Verificação manual:** abra Gerenciar produtos e confira os asteriscos. Adicione um cupcake ao carrinho e abra o checkout. Digite ou cole telefone e CEP; confira as máscaras, tente enviar dados incompletos e, na aba Network do navegador, confirme os valores sem pontuação nas requisições válidas. Complemento continua opcional.
 
+2. **Notificações toast:** sucessos e erros aparecem no canto inferior direito, sem deslocar o conteúdo. Há texto e cores diferentes, anúncio para leitores de tela, fechamento manual e tempo mínimo de 8 segundos (12 para erros), com pausa por mouse ou foco do teclado. Mensagens idênticas já visíveis não são duplicadas.
+
+**Verificação manual:** adicione um cupcake e salve/edite um produto para observar os toasts de sucesso. Para observar um erro, use uma URL inválida no cadastro de produto ou interrompa temporariamente a API e tente uma operação. Confira o botão de fechar e passe o mouse ou leve o foco do teclado à notificação para pausar seu desaparecimento. Reative a API antes de continuar.
+
 ## Funcionalidades
 
 - Vitrine com busca, nome, descrição, preço e imagens locais de cupcakes.

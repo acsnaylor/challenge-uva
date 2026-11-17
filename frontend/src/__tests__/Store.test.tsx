@@ -7,6 +7,7 @@ import { CartPage } from '../pages/Store/CartPage'
 import { AdminPage } from '../pages/Store/AdminPage'
 import { CheckoutPage } from '../pages/Store/CheckoutPage'
 import { OrdersPage } from '../pages/Store/OrdersPage'
+import { ToastProvider } from '../components/ui/toast'
 import { shop } from '../services/shop'
 
 jest.mock('../services/shop', () => ({
@@ -17,7 +18,7 @@ jest.mock('../services/shop', () => ({
 const mocked = jest.mocked(shop)
 const product = { id: 1, name: 'Chocolate Belga', description: 'Cupcake de chocolate artesanal.', price: 16.90, imageUrl: '/images/chocolate.svg' }
 const cart = { id: 'cart-1', customer: null, completed: false, total: 33.80, items: [{ productId: 1, name: product.name, unitPrice: 16.90, imageUrl: product.imageUrl, quantity: 2, available: true }] }
-function mount(component: React.ReactNode) { return render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><ShopProvider>{component}</ShopProvider></MemoryRouter>) }
+function mount(component: React.ReactNode) { return render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><ToastProvider><ShopProvider>{component}</ShopProvider></ToastProvider></MemoryRouter>) }
 beforeEach(() => { jest.clearAllMocks(); localStorage.clear(); mocked.products.mockResolvedValue([product]); mocked.cart.mockResolvedValue(cart) })
 
 it('exibe produtos da API e filtra sabores', async () => {

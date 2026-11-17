@@ -1,9 +1,10 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Controller, useForm } from 'react-hook-form'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { MaskedInput, digitsOnly } from '../../components/ui/MaskedInput'
+import { useToast } from '../../components/ui/toast'
 import { RequiredMark } from '../../components/ui/RequiredMark'
 import { useShop } from '../../app/ShopContext'
 import { shop, money, errorMessage, type Delivery } from '../../services/shop'
@@ -19,6 +20,7 @@ export function CheckoutPage() {
   const { cart, loading, updateCart, finish, setError } = useShop()
   const [busy, setBusy] = useState(false)
   const navigate = useNavigate()
+  const { show } = useToast()
   const { register, control, handleSubmit, formState: { errors } } = useForm<CheckoutForm>({
     defaultValues: {
       name: cart?.customer?.name || '', email: cart?.customer?.email || '',
@@ -35,12 +37,13 @@ export function CheckoutPage() {
       })
       updateCart(current)
       await shop.checkout(cart.id, { ...data, postalCode: digitsOnly(data.postalCode), expectedTotal: cart.total })
+      show('Pedido confirmado com pagamento simulado aprovado.', { variant: 'success' })
       finish(cart.id); navigate(`/orders/${cart.id}`)
     } catch (e) {
       setError(errorMessage(e))
       try { updateCart(await shop.cart(cart.id)) } catch { /* Keep the original error visible. */ }
     } finally { setBusy(false) }
-  })
+  }, () => setError('Confira os campos obrigatórios, telefone e CEP.'))
 
   if (loading) return <p role="status">Carregando…</p>
   if (!cart || cart.completed || !cart.items.length) return <section className="empty">
@@ -99,7 +102,7 @@ export function CheckoutPage() {
             <option value="declined">Recusar pagamento (teste)</option>
           </select>
         </label>
-        {Object.keys(errors).length > 0 && <p className="error" role="alert">Confira os campos obrigatórios, telefone e CEP.</p>}
+
       </div>
       <aside className="summary">
         <h2>Seu pedido</h2>

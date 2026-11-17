@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { shop, type Cart } from '../services/shop'
 
+import { useToast } from '../components/ui/toast'
 const key = 'doce-atelie-cart'
 interface Store {
-  cart: Cart | null; loading: boolean; busy: boolean; error: string;
+  cart: Cart | null; loading: boolean; busy: boolean;
   setError: (value: string) => void;
   getCart: () => Promise<Cart>;
   updateCart: (cart: Cart) => void;
@@ -16,7 +17,8 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const lock = useRef(false)
-  const [error, setError] = useState('')
+  const { show } = useToast()
+  const setError = useCallback((message: string) => { if (message) show(message, { variant: 'error' }) }, [show])
   const updateCart = (value: Cart) => { localStorage.setItem(key, value.id); setCart(value) }
   useEffect(() => {
     let live = true
@@ -29,7 +31,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       }
     }).finally(() => { if (live) setLoading(false) })
     return () => { live = false }
-  }, [])
+  }, [setError])
   const getCart = async () => {
     if (cart && !cart.completed) return cart
     const value = await shop.createCart(); updateCart(value); return value
@@ -46,6 +48,6 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('doce-atelie-orders', JSON.stringify([...new Set([...orders, id])]))
     localStorage.removeItem(key); setCart(null)
   }
-  return <Context.Provider value={{ cart, loading, busy, error, setError, getCart, updateCart, changeQuantity, finish }}>{children}</Context.Provider>
+  return <Context.Provider value={{ cart, loading, busy, setError, getCart, updateCart, changeQuantity, finish }}>{children}</Context.Provider>
 }
 export function useShop() { const value = useContext(Context); if (!value) throw new Error('ShopProvider ausente'); return value }

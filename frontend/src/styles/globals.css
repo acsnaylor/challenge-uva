@@ -98,10 +98,14 @@ textarea { min-height: 100px; resize: vertical; }
 .admin-row p { font-size: .85rem; margin: 0; }
 .admin-row h3 { font-size: .9rem; }
 .error { color: #9d2c39; background: #fff0f0; padding: 14px; border-radius: 5px; font-size: .85rem; }
-.success { color: #356445; background: #edf6ee; padding: 14px; border-radius: 5px; font-size: .85rem; }
-.success a { text-decoration: underline; margin-left: 10px; }
-.global-error { margin: 20px 40px; display: flex; justify-content: space-between; gap: 20px; }
-.global-error button { border: 0; background: transparent; font-size: 1.3rem; }
+.toast-viewport { position: fixed; bottom: 20px; right: 20px; z-index: 100; width: min(390px, calc(100vw - 40px)); max-height: 70vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+.toast { pointer-events: auto; display: flex; align-items: start; gap: 14px; padding: 18px; border: 1px solid; border-left-width: 5px; border-radius: 8px; box-shadow: 0 6px 24px #47332f25; }
+.toast p { margin: 6px 0 0; font-size: .88rem; overflow-wrap: anywhere; }
+.toast strong { font-size: .85rem; }
+.toast button { margin-left: auto; flex-shrink: 0; min-width: 32px; min-height: 32px; background: transparent; color: inherit; border: 0; font-size: 1.5rem; line-height: 1; }
+.toast-success { background: #edf6ee; border-color: #3c7250; color: #245637; }
+.toast-error { background: #fff0f0; border-color: #a33646; color: #842635; }
+.toast-info { background: #fffcf7; border-color: #9c4c60; color: #653043; }
 .order { max-width: 800px; margin-bottom: 28px; }
 .order p { font-size: .9rem; }
 .status { color: #356445; background: #edf6ee; padding: 6px 12px; border-radius: 20px; font-size: .75rem; }
