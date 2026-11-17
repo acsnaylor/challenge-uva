@@ -1,147 +1,63 @@
-using ChallengeUva.Api.Extensions;
+﻿using ChallengeUva.Api.Extensions;
+using ChallengeUva.Application.Services;
 using ChallengeUva.Domain.Entities;
 using ChallengeUva.Infrastructure.Data.Contexts;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
-using System.IO;
-using System.Linq;
-using Swashbuckle.AspNetCore.Filters;
-using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 
-namespace ChallengeUva.Api
+namespace ChallengeUva.Api;
+
+public class Startup
 {
-    public class Startup
+    public IConfiguration Configuration { get; }
+    public Startup(IConfiguration configuration) => Configuration = configuration;
+
+    public void ConfigureServices(IServiceCollection services)
     {
-        public Startup(IConfiguration configuration)
+        services.AddDbContext<ChallengeUvaContext>(options => {
+            if (Configuration.GetValue<bool>("UseInMemoryDatabase")) options.UseInMemoryDatabase("CupcakeShop");
+            else options.UseSqlite(Configuration.GetConnectionString("Default"));
+        });
+        services.AddDIRepository();
+        services.AddScoped<ShopService>();
+        services.AddControllers();
+        services.AddCors(options => options.AddDefaultPolicy(policy => policy
+            .WithOrigins(Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" })
+            .AllowAnyHeader().AllowAnyMethod()));
+        services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "Doce Ateliê — Cupcakes Gourmet", Version = "v1" }));
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ChallengeUvaContext db)
+    {
+        if (db.Database.IsRelational()) db.Database.Migrate();
+        else db.Database.EnsureCreated();
+        if (!db.Products.Any())
         {
-            Configuration = configuration;
+            db.Products.AddRange(
+                new Product { Name = "Chocolate Belga", Description = "Massa de cacau, recheio de ganache belga e cobertura cremosa de chocolate.", Price = 16.90m, ImageUrl = "/images/chocolate.svg" },
+                new Product { Name = "Red Velvet", Description = "Massa aveludada de cacau com um delicado frosting de cream cheese.", Price = 18.50m, ImageUrl = "/images/red-velvet.svg" },
+                new Product { Name = "Baunilha & Morango", Description = "Baunilha com compota artesanal de morangos e buttercream de fruta.", Price = 15.90m, ImageUrl = "/images/morango.svg" },
+                new Product { Name = "Limão Siciliano", Description = "Massa leve, curd de limão siciliano e uma nuvem de merengue.", Price = 17.00m, ImageUrl = "/images/limao.svg" });
+            db.SaveChanges();
         }
-
-        public IConfiguration Configuration { get; }
-
-        public void ConfigureServices(IServiceCollection services)
-        {
-            var useInMemory = Configuration.GetValue<bool>("UseInMemoryDatabase");
-            if (useInMemory)
-            {
-                services.AddDbContext<ChallengeUvaContext>(options =>
-                    options.UseInMemoryDatabase("ChallengeUvaDb"));
+        app.Use(async (context, next) => {
+            try { await next(); }
+            catch (Exception ex) {
+                var status = ex is ShopException shop ? shop.Status : ex is DbUpdateException ? 409 : 500;
+                if (status == 500) context.RequestServices.GetRequiredService<ILogger<Startup>>().LogError(ex, "Erro na loja");
+                context.Response.StatusCode = status;
+                context.Response.ContentType = "application/problem+json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new {
+                    status, title = status == 500 ? "Não foi possível concluir a operação. Tente novamente." :
+                        ex is ShopException ? ex.Message : "Os dados foram alterados por outra operação. Atualize a página e tente novamente."
+                }));
             }
-            else
-            {
-                services.AddDbContext<ChallengeUvaContext>(options =>
-                    options.UseSqlite(Configuration.GetConnectionString("Default")));
-            }
-
-            services.AddDIRepository();
-            services.AddDIApplication();
-
-            services.AddLogging(builder =>
-            {
-                builder.ClearProviders();
-                builder.SetMinimumLevel(LogLevel.Warning);
-            });
-
-            services.AddControllers();
-            services.AddHttpContextAccessor();
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll",
-                    builder =>
-                    {
-                        builder.SetIsOriginAllowed(_ => true)
-                               .AllowAnyHeader()
-                               .AllowAnyMethod()
-                               .AllowCredentials();
-                    });
-            });
-
-            services.AddSwaggerExamplesFromAssemblyOf<Startup>();
-
-            services.AddSwaggerGen(c =>
-            {
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                if (File.Exists(xmlPath))
-                {
-                    c.IncludeXmlComments(xmlPath);
-                }
-
-                var domainXml = Path.Combine(AppContext.BaseDirectory, "ChallengeUva.Domain.xml");
-                if (File.Exists(domainXml)) c.IncludeXmlComments(domainXml);
-                var applicationXml = Path.Combine(AppContext.BaseDirectory, "ChallengeUva.Application.xml");
-                if (File.Exists(applicationXml)) c.IncludeXmlComments(applicationXml);
-                var infrastructureXml = Path.Combine(AppContext.BaseDirectory, "ChallengeUva.Infrastructure.xml");
-                if (File.Exists(infrastructureXml)) c.IncludeXmlComments(infrastructureXml);
-
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ChallengeUva API", Version = "v1" });
-                c.AddServer(new OpenApiServer { Url = "https://localhost:5001", Description = "Local HTTPS" });
-                c.AddServer(new OpenApiServer { Url = "http://localhost:5000", Description = "Local HTTP" });
-
-                c.ExampleFilters();
-                c.EnableAnnotations();
-            });
-
-            services.Configure<IISServerOptions>(options => options.AllowSynchronousIO = true);
-            services.Configure<KestrelServerOptions>(options => options.AllowSynchronousIO = true);
-        }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger, ChallengeUvaContext dbContext)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "ChallengeUva API v1");
-                c.DefaultModelsExpandDepth(-1);
-                c.EnableFilter();
-            });
-
-            if (dbContext.Database.IsRelational())
-            {
-                dbContext.Database.Migrate();
-            }
-
-            if (!dbContext.Superpowers.Any())
-            {
-                dbContext.Superpowers.AddRange(new[]
-                {
-                    new Superpower { Name = "Força", Description = "Força sobre-humana" },
-                    new Superpower { Name = "Velocidade", Description = "Mover-se em alta velocidade" },
-                    new Superpower { Name = "Voo", Description = "Capacidade de voar" },
-                    new Superpower { Name = "Invisibilidade", Description = "Ficar invisível" },
-                    new Superpower { Name = "Telepatia", Description = "Ler e comunicar-se pela mente" },
-                    new Superpower { Name = "Telecinese", Description = "Mover objetos com a mente" },
-                    new Superpower { Name = "Super Resistência", Description = "Alta resistência a danos" },
-                    new Superpower { Name = "Regeneração", Description = "Cura acelerada" },
-                    new Superpower { Name = "Rajada de Energia", Description = "Disparos de energia" },
-                    new Superpower { Name = "Controle do Tempo", Description = "Manipular a passagem do tempo" }
-                });
-                dbContext.SaveChanges();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseRouting();
-            app.UseCors("AllowAll");
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        }
+        });
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Doce Ateliê v1"));
+        app.UseRouting();
+        app.UseCors();
+        app.UseEndpoints(endpoints => endpoints.MapControllers());
     }
 }
-

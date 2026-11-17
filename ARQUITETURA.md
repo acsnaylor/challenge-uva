@@ -1,34 +1,61 @@
-# Decisões de Arquitetura e Implementação
+﻿# Arquitetura da loja de cupcakes
 
-Este documento resume as principais escolhas feitas no desenvolvimento da aplicação (frontend + backend) e o porquê de cada decisão.
+## Análise e reaproveitamento
 
-Objetivos
-- Entregar um CRUD de heróis consistente, responsivo e acessível.
-- Código simples de manter, com camadas claras e testes automatizados.
+O projeto original já separava domínio, aplicação, infraestrutura e API. O front-end usava React Router, Axios, React Hook Form, Tailwind e componentes reutilizáveis. Foram preservados os projetos C# e seus nomes para reduzir alterações estruturais e manter referências da solução.
 
-Frontend (React + Vite + TypeScript)
-- Vite + TS: build rápido, DX excelente e tipagem de ponta a ponta.
-- React 18: componentes funcionais com hooks; sem state manager global por simplicidade (estado local e navegação bastam para este escopo).
-- Estilização com Tailwind: classes utilitárias garantem consistência visual (gradientes, blur, cores) e velocidade de entrega. Componentes base (Button, Card, Badge, Select, Label, Input) seguem o padrão do projeto.
-- Roteamento (react-router): rotas declarativas para Home, Lista, Formulário (novo/edição) e NotFound.
-- Formulários (react-hook-form): validação leve no cliente; conversão de vírgula para ponto em altura/peso (ex.: “1,80” → 1.8) e normalização de data para ISO.
-- Camada de serviços (axios): `@services/*` concentra chamadas HTTP e tipos (`ApiResponse`, `HeroResponse`…), isolando o fetch da UI e facilitando testes.
-- UX/Erros: toast simples para feedback imediato (erros de validação do backend e mensagens de falha genéricas). Exclusão otimista na lista para experiência fluida.
-- Testes: Jest + Testing Library com mocks dos serviços; cobrimos lista, remoção e formulário (criação/edição/validação/voltar).
+| Elemento existente | Uso na loja |
+| --- | --- |
+| React, TypeScript e Vite | Aplicação e build preservados |
+| Tailwind e componentes Button/Input/ImageWithFallback | Formulários, ações, imagens e interface responsiva |
+| React Router / AppLayout | Rotas da loja, navegação e cabeçalho com quantidade do carrinho |
+| Axios / apiClient | Integração HTTP real, configurável por variável de ambiente |
+| React Hook Form | Cadastro de produtos e checkout |
+| ASP.NET Core / Startup / controllers / DI | Inicialização, endpoints e injeção do serviço da loja |
+| Entity Framework / ChallengeUvaContext / SQLite | Persistência e migrations incrementais |
+| Repositório genérico | Preservado; o serviço transacional usa diretamente o DbContext compartilhado |
+| xUnit, FluentAssertions, Jest e Testing Library | Suítes adaptadas ao domínio da loja |
 
-Backend (.NET + ASP.NET Core)
-- Camadas Application/Domain/Infrastructure para separação de responsabilidades.
-- Controllers REST (Heroes, Superpowers) com envelope `ApiResponse` unificado (code/message/result/errors).
-- Swagger (Swashbuckle): documentação interativa em `/swagger` e exemplos de request/response.
-- Migrations automáticas no startup; CORS liberado para facilitar o desenvolvimento local.
+Telas, serviços e controllers de heróis foram substituídos. Entidades e mapeamentos históricos continuam no contexto exclusivamente para compatibilidade com as migrations e bancos antigos. Não são expostos pela API. A migration GourmetShop adiciona as tabelas comerciais sem eliminar registros anteriores.
 
-Trade-offs e racional
-- Evitamos Redux/Zustand para não complexificar sem necessidade; o fluxo atual é simples.
-- Mantivemos UI acessível (labels, `sr-only`, roles) e consistente com o tema do app.
-- O toast é minimalista (sem dependências) para reduzir acoplamento; pode ser trocado por Sonner/Toastify facilmente.
+## Camadas
 
-Próximos passos (sugestões)
-- Adotar Sonner/Toastify para toasts com mais recursos.
-- Testes e2e (Playwright) para fluxos críticos.
-- Paginação/consulta no backend quando a lista crescer.
+- `ChallengeUva.Domain`: entidades de produto, cliente, carrinho e pedido; contratos de entrada com validações.
+- `ChallengeUva.Application`: `ShopService` e regras de negócio, totalização, validação e finalização.
+- `ChallengeUva.Infrastructure`: DbContext, configuração relacional, migrations e infraestrutura de repositório existente.
+- `ChallengeUva.Api`: controllers finos, CORS, Swagger e tratamento centralizado de erros.
+- `frontend/src/services/shop.ts`: contratos TypeScript e chamadas HTTP.
+- `frontend/src/app/ShopContext.tsx`: recuperação do carrinho, identificação local e coordenação das alterações.
+- `frontend/src/pages/Store`: vitrine, gestão de produtos, carrinho, checkout e histórico.
 
+O serviço usa a unidade de trabalho do EF diretamente porque a finalização precisa salvar o agregado de pedido e a alteração do carrinho na mesma transação. Evita chamadas separadas a repositórios que poderiam gravar um pedido sem fechar seu carrinho.
+
+## Modelo de dados
+
+`Product` armazena nome, descrição, preço, imagem e disponibilidade. A remoção é lógica para não invalidar referências de carrinhos e o histórico.
+
+`Customer` armazena nome, e-mail normalizado e telefone. Um e-mail possui índice único. A operação de cadastro pertence ao carrinho e pode atualizar seu cliente atual. Um novo carrinho pode reutilizar o cliente de um carrinho anterior mediante apresentação do identificador aleatório anterior.
+
+`Cart` possui identificador UUID, cliente opcional, estado de finalização, revisão e itens. Cada par carrinho/produto é único. Quantidades variam de 1 a 99; enviar zero remove o item. O servidor sempre consulta os produtos para calcular preços e totais.
+
+`Order` guarda os dados do cliente e da entrega na compra, data UTC, resultado do pagamento simulado, total e itens. `OrderItem` copia nome, preço e quantidade; alterações posteriores no produto ou no cadastro não reescrevem o pedido. O vínculo ao carrinho é único.
+
+Valores monetários são `decimal` no domínio e inteiros em centavos no SQLite, evitando cálculos com ponto flutuante na persistência.
+
+## Consistência e erros
+
+- Uma única chamada `SaveChangesAsync` grava pedido e finalização do carrinho atomicamente.
+- A revisão do carrinho é um token de concorrência otimista; duas alterações sobre a mesma revisão não podem ser gravadas silenciosamente.
+- O índice único de pedido por carrinho reforça a proteção contra duplicidade. Uma repetição após conclusão devolve o pedido existente.
+- O checkout recusa carrinho vazio, cliente ausente, produto desativado, endereço inválido ou divergência de preço.
+- O pagamento recusado não grava pedido nem finaliza o carrinho. A simulação não recebe dados financeiros.
+- Conflitos retornam HTTP 409; dados inválidos, 400; registros ausentes, 404; pagamento recusado, 422. Falhas inesperadas retornam mensagem genérica e são registradas no servidor.
+- O front-end impede ações repetidas durante requisições, exibe falhas e atualiza o carrinho após conflitos no checkout, preservando o preenchimento do formulário.
+
+## Identificação e limites
+
+Os dados comerciais ficam na API. `localStorage` contém apenas identificadores opacos para recuperar o carrinho, reutilizar o cadastro e consultar pedidos. Não existe cópia local de produtos ou pedidos como substituto do back-end.
+
+A demonstração não implementa contas autenticadas nem privilégios de administrador. O UUID do carrinho dá acesso aos dados associados. A gestão de produtos é pública no ambiente local. Uma implantação pública requer autenticação e autorização, incluindo recuperação de conta e acesso entre dispositivos.
+
+As imagens fornecidas são ilustrações SVG locais, reaproveitando o suporte a assets do Vite. O catálogo permite outras imagens por URL. Frete gratuito, pagamento simulado e ausência de estoque são limites deliberados do projeto.

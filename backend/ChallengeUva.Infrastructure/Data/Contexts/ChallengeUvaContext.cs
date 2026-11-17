@@ -10,12 +10,29 @@ namespace ChallengeUva.Infrastructure.Data.Contexts
         }
 
         public DbSet<Hero> Heroes { get; set; } = null!;
+        public DbSet<Product> Products => Set<Product>();
+        public DbSet<Customer> Customers => Set<Customer>();
+        public DbSet<Cart> Carts => Set<Cart>();
+        public DbSet<CartItem> CartItems => Set<CartItem>();
+        public DbSet<Order> Orders => Set<Order>();
+        public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Superpower> Superpowers { get; set; } = null!;
         public DbSet<HeroSuperpower> HeroSuperpowers { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Product>().Property(p => p.Price).HasConversion<long>(v => (long)(v * 100), v => v / 100m);
+            modelBuilder.Entity<Customer>().HasIndex(c => c.Email).IsUnique();
+            modelBuilder.Entity<Cart>().Property(c => c.Revision).IsConcurrencyToken();
+            modelBuilder.Entity<Cart>().HasMany(c => c.Items).WithOne().HasForeignKey(i => i.CartId);
+            modelBuilder.Entity<CartItem>().HasIndex(i => new { i.CartId, i.ProductId }).IsUnique();
+            modelBuilder.Entity<Order>().HasIndex(o => o.CartId).IsUnique();
+            modelBuilder.Entity<Order>().Property(o => o.CreatedAt).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            modelBuilder.Entity<Order>().HasOne<Cart>().WithMany().HasForeignKey(o => o.CartId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Order>().HasMany(o => o.Items).WithOne().HasForeignKey(i => i.OrderId);
+            modelBuilder.Entity<Order>().Property(o => o.Total).HasConversion<long>(v => (long)(v * 100), v => v / 100m);
+            modelBuilder.Entity<OrderItem>().Property(i => i.UnitPrice).HasConversion<long>(v => (long)(v * 100), v => v / 100m);
             modelBuilder.Entity<Hero>().ToTable("Herois");
             modelBuilder.Entity<Superpower>().ToTable("Superpoderes");
             modelBuilder.Entity<HeroSuperpower>().ToTable("HeroisSuperpoderes");
