@@ -114,6 +114,14 @@ public class ShopServiceTests : IDisposable
         (await action.Should().ThrowAsync<ShopException>()).Which.Status.Should().Be(422);
         (await db.Orders.CountAsync()).Should().Be(0);
         (await shop.GetCart(cart.Id)).Completed.Should().BeFalse();
+        using (var other = new ChallengeUvaContext(options))
+        {
+            var persistedCart = await new ShopService(other).GetCart(cart.Id);
+            persistedCart.Items.Single().Quantity.Should().Be(2);
+            persistedCart.Total.Should().Be(33.80m);
+            persistedCart.Completed.Should().BeFalse();
+            (await other.Orders.CountAsync()).Should().Be(0);
+        }
         (await shop.Checkout(cart.Id, Delivery())).Total.Should().Be(33.80m);
     }
 

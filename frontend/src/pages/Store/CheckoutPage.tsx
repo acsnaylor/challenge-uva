@@ -40,8 +40,10 @@ export function CheckoutPage() {
       show('Pedido confirmado com pagamento simulado aprovado.', { variant: 'success' })
       finish(cart.id); navigate(`/orders/${cart.id}`)
     } catch (e) {
-      setError(errorMessage(e))
+      const declined = (e as { response?: { status: number } }).response?.status === 422
+      if (!declined) setError(errorMessage(e))
       try { updateCart(await shop.cart(cart.id)) } catch { /* Keep the original error visible. */ }
+      if (declined) navigate('/payment-failed')
     } finally { setBusy(false) }
   }, () => setError('Confira os campos obrigatórios, telefone e CEP.'))
 

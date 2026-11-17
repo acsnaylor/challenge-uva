@@ -14,6 +14,10 @@ A versão anterior às melhorias está no commit `87e3ef8`. Cada melhoria desta 
 
 **Verificação manual:** adicione um cupcake e salve/edite um produto para observar os toasts de sucesso. Para observar um erro, use uma URL inválida no cadastro de produto ou interrompa temporariamente a API e tente uma operação. Confira o botão de fechar e passe o mouse ou leve o foco do teclado à notificação para pausar seu desaparecimento. Reative a API antes de continuar.
 
+3. **Pagamento recusado:** a resposta de recusa (HTTP 422) leva à página `/payment-failed`, com explicação e botão **Voltar ao carrinho**. A página recebe foco no título para leitores de tela. Os itens e quantidades permanecem no SQLite, nenhum pedido é aprovado e a aprovação continua no fluxo anterior. Outros erros permanecem no checkout e usam toast.
+
+**Verificação manual:** preencha o checkout e selecione **Recusar pagamento (teste)**. Confirme a navegação para a página de falha, volte ao carrinho e confira as quantidades, inclusive após atualizar a página. Repita o checkout com **Aprovar pagamento** e verifique a confirmação e o histórico. No Swagger, a consulta do pedido do carrinho recusado retorna 404 até uma aprovação.
+
 ## Funcionalidades
 
 - Vitrine com busca, nome, descrição, preço e imagens locais de cupcakes.
@@ -86,8 +90,8 @@ As tabelas antigas de heróis são mantidas para permitir atualizar bancos exist
 1. Abra **Gerenciar produtos** e cadastre um cupcake usando `/images/morango.svg` ou uma URL HTTP/HTTPS de imagem.
 2. Na vitrine, adicione produtos. Abra o carrinho e altere as quantidades.
 3. Continue para entrega, preencha cliente e endereço.
-4. Selecione **Recusar pagamento (teste)** e confirme: a API retorna uma recusa e mantém o carrinho.
-5. Selecione **Aprovar pagamento** e confirme: o pedido é salvo e o carrinho é finalizado.
+4. Selecione **Recusar pagamento (teste)** e confirme: a API retorna uma recusa e a loja abre a página de falha, mantendo o carrinho.
+5. Clique em **Voltar ao carrinho**, continue para o checkout e selecione **Aprovar pagamento**: o pedido é salvo e o carrinho é finalizado.
 6. Consulte **Meus pedidos**, reinicie a API e recarregue a página para verificar a persistência.
 7. Edite ou remova um produto: os dados dos pedidos anteriores permanecem iguais.
 
