@@ -52,6 +52,16 @@ Valores monetários são `decimal` no domínio e inteiros em centavos no SQLite,
 - Conflitos retornam HTTP 409; dados inválidos, 400; registros ausentes, 404; pagamento recusado, 422. Falhas inesperadas retornam mensagem genérica e são registradas no servidor.
 - O front-end impede ações repetidas durante requisições, exibe falhas e atualiza o carrinho após conflitos no checkout, preservando o preenchimento do formulário.
 
+## Bancos e publicação
+
+O ambiente Development mantém `ChallengeUvaContext` com SQLite e o histórico de migrations existente. Em Production, `appsettings.Production.json` seleciona PostgreSQL, configurado por `DATABASE_URL` ou `ConnectionStrings__Postgres`. A inicialização não utiliza SQLite como fallback se a conexão de produção estiver ausente.
+
+`PostgresChallengeUvaContext` herda o mesmo modelo e possui migrations próprias em `Data/Migrations/PostgreSQL`. A DI entrega esse contexto como `ChallengeUvaContext` aos serviços e repositórios existentes, mantendo as operações e suas transações. A separação impede executar as migrations específicas do SQLite no PostgreSQL. Valores monetários continuam em centavos, armazenados como `bigint` no PostgreSQL, e as datas de pedido e contato utilizam UTC.
+
+O Dockerfile publica a API em múltiplos estágios e utiliza somente o runtime ASP.NET Core na imagem final, com usuário sem privilégios de administrador. O programa lê `PORT` e escuta em `0.0.0.0` quando essa variável existe; os perfis locais permanecem iguais. `/health` verifica a conexão com o banco. As migrations são aplicadas na inicialização da instância da demonstração.
+
+O front-end é um Static Site separado. `VITE_API_BASE_URL` contém a origem HTTPS pública da API no momento do build, validada por `npm run build:render`. A API autoriza a origem real do front-end por `AllowedOrigins__0`, sem origem curinga. A reescrita das rotas React para `/index.html` é configurada no Render. As instruções completas e os valores que precisam ser obtidos no painel estão no README.
+
 ## Identificação e limites
 
 Os dados comerciais ficam na API. `localStorage` contém apenas identificadores opacos para recuperar o carrinho, reutilizar o cadastro e consultar pedidos. Não existe cópia local de produtos ou pedidos como substituto do back-end.

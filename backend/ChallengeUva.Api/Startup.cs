@@ -5,26 +5,31 @@ using ChallengeUva.Infrastructure.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
+using ChallengeUva.Api.Health;
 
 namespace ChallengeUva.Api;
 
 public class Startup
 {
     public IConfiguration Configuration { get; }
-    public Startup(IConfiguration configuration) => Configuration = configuration;
+    private readonly IWebHostEnvironment environment;
+    public Startup(IConfiguration configuration, IWebHostEnvironment environment)
+    {
+        Configuration = configuration;
+        this.environment = environment;
+    }
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddDbContext<ChallengeUvaContext>(options => {
-            if (Configuration.GetValue<bool>("UseInMemoryDatabase")) options.UseInMemoryDatabase("CupcakeShop");
-            else options.UseSqlite(Configuration.GetConnectionString("Default"));
-        });
+        services.AddShopDatabase(Configuration);
         services.AddDIRepository();
         services.AddScoped<ShopService>();
         services.AddScoped<ContactService>();
         services.AddControllers();
+        services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database");
         services.AddCors(options => options.AddDefaultPolicy(policy => policy
-            .WithOrigins(Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" })
+            .WithOrigins(Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                ?? (environment.IsDevelopment() ? new[] { "http://localhost:5173" } : Array.Empty<string>()))
             .AllowAnyHeader().AllowAnyMethod()));
         services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "Doce Ateliê — Cupcakes Gourmet", Version = "v1" }));
     }
@@ -59,6 +64,9 @@ public class Startup
         app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Doce Ateliê v1"));
         app.UseRouting();
         app.UseCors();
-        app.UseEndpoints(endpoints => endpoints.MapControllers());
+        app.UseEndpoints(endpoints => {
+            endpoints.MapControllers();
+            endpoints.MapHealthChecks("/health");
+        });
     }
 }

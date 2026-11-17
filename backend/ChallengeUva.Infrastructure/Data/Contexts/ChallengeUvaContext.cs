@@ -9,6 +9,10 @@ namespace ChallengeUva.Infrastructure.Data.Contexts
         {
         }
 
+        protected ChallengeUvaContext(DbContextOptions options) : base(options)
+        {
+        }
+
         public DbSet<Hero> Heroes { get; set; } = null!;
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Customer> Customers => Set<Customer>();

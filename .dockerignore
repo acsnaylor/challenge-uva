@@ -1,0 +1,15 @@
+.git
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/coverage
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/.env
+**/.env.*
+**/*.user
+frontend
+backend/ChallengeUva.Tests
+secrets

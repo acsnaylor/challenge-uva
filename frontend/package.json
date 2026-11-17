@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:render": "node scripts/validate-render-env.mjs && npm run build",
+    "test:render": "node --test scripts/validate-render-env.test.mjs",
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch"
