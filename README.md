@@ -2,6 +2,14 @@
 
 Loja virtual acadêmica da disciplina **Projeto Integrador Transdisciplinar em Engenharia de Software II**, adaptada do projeto ChallengeUva.
 
+## Melhorias de usabilidade — PIT II
+
+A versão anterior às melhorias está no commit `87e3ef8`. Cada melhoria desta etapa é registrada em um commit separado para permitir a comparação no segundo vídeo.
+
+1. **Formulários:** telefone com máscara `(XX) XXXXX-XXXX` (também aceita os telefones de dez dígitos já suportados), CEP `XXXXX-XXX` e asterisco nos campos obrigatórios de produtos e checkout. As máscaras são apenas visuais; telefone e CEP são enviados à API somente com dígitos, preservando as validações do servidor.
+
+**Verificação manual:** abra Gerenciar produtos e confira os asteriscos. Adicione um cupcake ao carrinho e abra o checkout. Digite ou cole telefone e CEP; confira as máscaras, tente enviar dados incompletos e, na aba Network do navegador, confirme os valores sem pontuação nas requisições válidas. Complemento continua opcional.
+
 ## Funcionalidades
 
 - Vitrine com busca, nome, descrição, preço e imagens locais de cupcakes.
