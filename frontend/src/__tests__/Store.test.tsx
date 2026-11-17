@@ -25,6 +25,7 @@ it('exibe produtos da API e filtra sabores', async () => {
   mount(<Storefront />)
   expect(await screen.findByText('Chocolate Belga')).toBeInTheDocument()
   expect(screen.getByText('R$ 16.90')).toBeInTheDocument()
+  expect(screen.getByRole('region', { name: 'Avaliações de clientes' })).toBeInTheDocument()
   await userEvent.type(screen.getByRole('textbox', { name: 'Buscar cupcakes' }), 'limão')
   expect(screen.getByText('Nenhum cupcake encontrado.')).toBeInTheDocument()
 })

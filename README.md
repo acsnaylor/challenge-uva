@@ -22,6 +22,24 @@ A versão anterior às melhorias está no commit `87e3ef8`. Cada melhoria desta 
 
 **Verificação manual:** reinicie a API para carregar o endpoint e aplicar a migration `ContactMessages`. Abra Fale Conosco; tente enviar vazio e com e-mail inválido, depois envie dados fictícios válidos. Confira o toast com protocolo. O endpoint está no Swagger, e os registros podem ser consultados no SQLite com `SELECT Id, Name, Email, Subject, Message, CreatedAt FROM ContactMessages;`. Para um teste HTTP automatizado, execute `node scripts/contact-smoke-test.mjs http://localhost:5000` (cria uma mensagem de demonstração). Os testes do back-end também verificam a persistência em outro contexto SQLite e a atualização de um banco anterior sem perda dos produtos.
 
+5. **Avaliações na home:** três depoimentos demonstrativos com nome fictício, estrelas e comentário, identificados no aviso da seção e em cada cartão. A grade tem três colunas em telas maiores e uma coluna no celular. As notas têm descrição acessível para leitores de tela. O conteúdo é estático, sem representar avaliações reais nem introduzir cadastro de avaliações.
+
+**Verificação manual:** na vitrine, role até **Avaliações de clientes**, abaixo dos produtos. Confira o aviso de conteúdo fictício, os nomes, as notas e os comentários. Reduza a janela para aproximadamente 375 px e verifique a disposição dos cartões em uma coluna e o acesso à navegação.
+
+## Arquivos das melhorias
+
+| Melhoria | Arquivos principais |
+| --- | --- |
+| Formulários | `frontend/src/components/ui/MaskedInput.tsx`, `RequiredMark.tsx`, `pages/Store/CheckoutPage.tsx`, `AdminPage.tsx`, `styles/globals.css`, testes `Forms.test.tsx` e `Store.test.tsx` |
+| Toasts | `frontend/src/components/ui/toast.tsx`, `app/App.tsx`, `ShopContext.tsx`, `components/layout/AppLayout.tsx`, páginas `Storefront`, `AdminPage`, `CheckoutPage`, `OrdersPage`, estilos e `Toast.test.tsx` |
+| Pagamento recusado | `frontend/src/pages/Store/PaymentFailedPage.tsx`, `CheckoutPage.tsx`, `app/App.tsx`, estilos, `PaymentFlow.test.tsx` e `backend/ChallengeUva.Tests/ShopServiceTests.cs` |
+| Fale Conosco | `frontend/src/pages/Store/ContactPage.tsx`, `services/shop.ts`, rotas, navegação e estilos; back-end `ContactMessage.cs`, `ContactMessageRequest.cs`, `ContactMessageReceipt.cs`, `ContactService.cs`, `ContactMessagesController.cs`, `Startup.cs`, contexto e migration `ContactMessages`; `ContactPage.test.tsx`, `ContactServiceTests.cs` e `scripts/contact-smoke-test.mjs` |
+| Avaliações | `frontend/src/components/CustomerReviews.tsx`, `pages/Store/Storefront.tsx`, estilos, `CustomerReviews.test.tsx` e `Store.test.tsx` |
+
+O README foi atualizado em cada um dos cinco commits. Para a comparação geral: `git diff 87e3ef8..HEAD`. Para ver os arquivos de uma melhoria: `git show --stat <commit>`.
+
+**Validação desta etapa:** 31 testes do back-end e 23 do front-end aprovados; build de produção aprovado; testes HTTP de compra e contato aprovados contra uma API de teste; gravação da mensagem conferida diretamente no SQLite; modelo sem alterações pendentes de migration. As instruções acima são o roteiro para a revisão visual e a demonstração manual no navegador.
+
 ## Funcionalidades
 
 - Vitrine com busca, nome, descrição, preço e imagens locais de cupcakes.

@@ -117,6 +117,18 @@ textarea { min-height: 100px; resize: vertical; }
 .contact-intro { padding: 30px 0; }
 .contact-intro svg { color: #9c4c60; margin-bottom: 24px; }
 .contact-intro p { max-width: 400px; }
+.reviews { padding: 15px 40px 55px; }
+.reviews h2 { margin-bottom: 16px; }
+.reviews-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 26px; }
+.review-card { margin: 0; padding: 25px; border: 1px solid #eadfd5; border-radius: 9px; background: #fff; display: flex; flex-direction: column; }
+.review-stars { color: #986920; display: flex; gap: 4px; margin-bottom: 18px; }
+.review-card blockquote { margin: 0 0 22px; flex: 1; }
+.review-card blockquote p { font-size: .88rem; color: #6e5b50; margin-bottom: 0; }
+.review-card figcaption { display: flex; align-items: center; gap: 12px; }
+.review-card figcaption strong { font-size: .85rem; }
+.review-card figcaption small { display: block; font-size: .7rem; color: #846c60; margin-top: 4px; }
+.review-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; background: #f3e6e6; color: #803d50; font-family: Georgia, serif; }
+@media (max-width: 720px) { .reviews { padding: 0 20px 35px; } .reviews-grid { grid-template-columns: 1fr; gap: 16px; } }
 @media (max-width: 1050px) { .site-header { flex-wrap: wrap; } .site-header nav { order: 3; width: 100%; margin-left: 0; justify-content: center; flex-wrap: wrap; } .site-header .bag { margin-left: auto; } }
 @media (max-width: 720px) { .contact-layout { grid-template-columns: 1fr; gap: 10px; } .contact-intro { padding-top: 0; } }
 @media (max-width: 1050px) { .product-grid { grid-template-columns: repeat(2, 1fr); } .hero { padding: 45px 35px; } .site-header { gap: 20px; } nav { gap: 15px; } .bag span { display: none; } .admin-layout { grid-template-columns: 310px 1fr; } }

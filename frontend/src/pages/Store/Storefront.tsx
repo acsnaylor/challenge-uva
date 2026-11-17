@@ -4,6 +4,7 @@ import { ArrowRight, Plus } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback'
+import { CustomerReviews } from '../../components/CustomerReviews'
 import { useShop } from '../../app/ShopContext'
 import { shop, money, errorMessage, type Product } from '../../services/shop'
 
@@ -31,6 +32,7 @@ export function Storefront() {
 
       {loading ? <p role="status">Preparando a vitrine…</p> : filtered.length === 0 ? <p>Nenhum cupcake encontrado.</p> : <div className="product-grid">{filtered.map(p => <article className="product-card" key={p.id}><div className="product-image"><ImageWithFallback src={p.imageUrl} alt={p.name} loading="lazy" /></div><div className="product-info"><span className="eyebrow">CUPCAKE GOURMET</span><h3>{p.name}</h3><p>{p.description}</p><div className="product-bottom"><strong>{money(p.price)}</strong><Button onClick={() => add(p)} disabled={busy || cartLoading} aria-label={`Adicionar ${p.name}`}><Plus size={16} /> Adicionar</Button></div></div></article>)}</div>}
     </section>
+    <CustomerReviews />
     <section className="story"><span className="eyebrow">DO NOSSO ATELIÊ PARA VOCÊ</span><h2>Cada detalhe tem um toque de carinho.</h2><p>Uma pausa no meio do dia, um presente especial ou uma celebração. Sempre existe uma boa ocasião para um doce feito à mão.</p></section>
   </>
 }
