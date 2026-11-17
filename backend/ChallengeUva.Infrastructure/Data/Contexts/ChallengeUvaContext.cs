@@ -16,12 +16,19 @@ namespace ChallengeUva.Infrastructure.Data.Contexts
         public DbSet<CartItem> CartItems => Set<CartItem>();
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+        public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
         public DbSet<Superpower> Superpowers { get; set; } = null!;
         public DbSet<HeroSuperpower> HeroSuperpowers { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<ContactMessage>().Property(m => m.Name).HasMaxLength(100);
+            modelBuilder.Entity<ContactMessage>().Property(m => m.Email).HasMaxLength(254);
+            modelBuilder.Entity<ContactMessage>().Property(m => m.Subject).HasMaxLength(150);
+            modelBuilder.Entity<ContactMessage>().Property(m => m.Message).HasMaxLength(3000);
+            modelBuilder.Entity<ContactMessage>().Property(m => m.CreatedAt)
+                .HasConversion(value => value, value => DateTime.SpecifyKind(value, DateTimeKind.Utc));
             modelBuilder.Entity<Product>().Property(p => p.Price).HasConversion<long>(v => (long)(v * 100), v => v / 100m);
             modelBuilder.Entity<Customer>().HasIndex(c => c.Email).IsUnique();
             modelBuilder.Entity<Cart>().Property(c => c.Revision).IsConcurrencyToken();

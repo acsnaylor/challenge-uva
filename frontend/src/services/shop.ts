@@ -2,6 +2,8 @@ import { api } from './apiClient'
 
 export interface Product { id: number; name: string; description: string; price: number; imageUrl: string }
 export type ProductInput = Omit<Product, 'id'>
+export interface ContactMessageInput { name: string; email: string; subject: string; message: string }
+export interface ContactReceipt { id: number; createdAt: string; confirmation: string }
 export interface Customer { id: number; name: string; email: string; phone: string }
 export interface CartLine { productId: number; name: string; imageUrl: string; unitPrice: number; quantity: number; available: boolean }
 export interface Cart { id: string; customer: Customer | null; completed: boolean; items: CartLine[]; total: number }
@@ -14,6 +16,7 @@ export const errorMessage = (error: unknown): string => {
   return data?.errors ? Object.values(data.errors).flat().join(' ') : data?.title || 'Não foi possível conectar à loja. Verifique se a API está em execução.'
 }
 export const shop = {
+  contact: async (data: ContactMessageInput) => (await api.post<ContactReceipt>('/api/contact-messages', data)).data,
   products: async () => (await api.get<Product[]>('/api/products')).data,
   saveProduct: async (data: ProductInput, id?: number) => (id ? await api.put(`/api/products/${id}`, data) : await api.post('/api/products', data)).data,
   deleteProduct: async (id: number) => { await api.delete(`/api/products/${id}`) },

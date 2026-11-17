@@ -7,6 +7,7 @@ import { AdminPage } from '../pages/Store/AdminPage'
 import { CheckoutPage } from '../pages/Store/CheckoutPage'
 import { OrdersPage } from '../pages/Store/OrdersPage'
 import { PaymentFailedPage } from '../pages/Store/PaymentFailedPage'
+import { ContactPage } from '../pages/Store/ContactPage'
 import '../styles/globals.css'
 import { ToastProvider } from '../components/ui/toast'
 
@@ -16,6 +17,7 @@ export function App() {
     <Route path="cart" element={<CartPage />} />
     <Route path="checkout" element={<CheckoutPage />} />
     <Route path="payment-failed" element={<PaymentFailedPage />} />
+    <Route path="contact" element={<ContactPage />} />
     <Route path="admin/products" element={<AdminPage />} />
     <Route path="orders" element={<OrdersPage />} />
     <Route path="orders/:cartId" element={<OrdersPage />} />

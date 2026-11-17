@@ -21,6 +21,7 @@ public class Startup
         });
         services.AddDIRepository();
         services.AddScoped<ShopService>();
+        services.AddScoped<ContactService>();
         services.AddControllers();
         services.AddCors(options => options.AddDefaultPolicy(policy => policy
             .WithOrigins(Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5173" })

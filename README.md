@@ -18,6 +18,10 @@ A versão anterior às melhorias está no commit `87e3ef8`. Cada melhoria desta 
 
 **Verificação manual:** preencha o checkout e selecione **Recusar pagamento (teste)**. Confirme a navegação para a página de falha, volte ao carrinho e confira as quantidades, inclusive após atualizar a página. Repita o checkout com **Aprovar pagamento** e verifique a confirmação e o histórico. No Swagger, a consulta do pedido do carrinho recusado retorna 404 até uma aprovação.
 
+4. **Fale Conosco:** rota `/contact`, acessível pela navegação principal, com nome, e-mail, assunto e mensagem obrigatórios. O novo endpoint `POST /api/contact-messages` valida e grava os dados na tabela `ContactMessages` do SQLite. A confirmação usa toast com número de protocolo e só ocorre após a gravação. Em falhas, o preenchimento é preservado. Não há envio de e-mail nem listagem pública de mensagens.
+
+**Verificação manual:** reinicie a API para carregar o endpoint e aplicar a migration `ContactMessages`. Abra Fale Conosco; tente enviar vazio e com e-mail inválido, depois envie dados fictícios válidos. Confira o toast com protocolo. O endpoint está no Swagger, e os registros podem ser consultados no SQLite com `SELECT Id, Name, Email, Subject, Message, CreatedAt FROM ContactMessages;`. Para um teste HTTP automatizado, execute `node scripts/contact-smoke-test.mjs http://localhost:5000` (cria uma mensagem de demonstração). Os testes do back-end também verificam a persistência em outro contexto SQLite e a atualização de um banco anterior sem perda dos produtos.
+
 ## Funcionalidades
 
 - Vitrine com busca, nome, descrição, preço e imagens locais de cupcakes.
@@ -149,6 +153,7 @@ Respostas de sucesso retornam diretamente o recurso JSON; não usam o envelope a
 | PUT | `/api/carts/{guid}/customer` | Cadastro/atualização do cliente desse carrinho |
 | POST | `/api/carts/{guid}/checkout` | Endereço, `paymentSimulation` e `expectedTotal` |
 | GET | `/api/carts/{guid}/order` | Pedido originado pelo carrinho |
+| POST | `/api/contact-messages` | Recebe nome, e-mail, assunto e mensagem; grava no SQLite e retorna protocolo (201) |
 
 `paymentSimulation` aceita `approved` ou `declined`. `expectedTotal` deve coincidir com o total calculado pelo servidor; divergências retornam 409 para revisão dos preços. A aprovação grava o pedido e fecha o carrinho em uma transação. Repetir a finalização válida retorna o mesmo pedido. A recusa retorna 422 e não cria pedido.
 
