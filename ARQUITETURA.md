@@ -2,6 +2,8 @@
 
 ## Análise e reaproveitamento
 
+A documentação acadêmica atualizada está em [docs](docs/README.md), com requisitos, histórias, backlog, modelos e comparação entre a PIT I e a PIT II. Este arquivo mantém a visão técnica resumida do repositório.
+
 O projeto original já separava domínio, aplicação, infraestrutura e API. O front-end usava React Router, Axios, React Hook Form, Tailwind e componentes reutilizáveis. Foram preservados os projetos C# e seus nomes para reduzir alterações estruturais e manter referências da solução.
 
 | Elemento existente | Uso na loja |
@@ -66,6 +68,6 @@ O front-end é um Static Site separado. `VITE_API_BASE_URL` contém a origem HTT
 
 Os dados comerciais ficam na API. `localStorage` contém apenas identificadores opacos para recuperar o carrinho, reutilizar o cadastro e consultar pedidos. Não existe cópia local de produtos ou pedidos como substituto do back-end.
 
-A demonstração não implementa contas autenticadas nem privilégios de administrador. O UUID do carrinho dá acesso aos dados associados. A gestão de produtos é pública no ambiente local. Uma implantação pública requer autenticação e autorização, incluindo recuperação de conta e acesso entre dispositivos.
+A demonstração publicada não implementa contas autenticadas nem privilégios de administrador. O UUID do carrinho dá acesso aos dados associados. A gestão de produtos permanece pública. O uso operacional com dados reais requer autenticação e autorização, incluindo recuperação de conta e acesso entre dispositivos.
 
 As imagens fornecidas são ilustrações SVG locais, reaproveitando o suporte a assets do Vite. O catálogo permite outras imagens por URL. Frete gratuito, pagamento simulado e ausência de estoque são limites deliberados do projeto.

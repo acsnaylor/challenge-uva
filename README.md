@@ -1,8 +1,33 @@
 ﻿# Doce Ateliê — Cupcakes Gourmet
 
-Loja virtual acadêmica da disciplina **Projeto Integrador Transdisciplinar em Engenharia de Software II**, adaptada do projeto ChallengeUva.
+Loja virtual acadêmica da disciplina **Projeto Integrador Transdisciplinar em Engenharia de Software II**, em continuidade ao planejamento de uma loja de cupcakes gourmet realizado na PIT I.
 
-## Publicação no Render — projeto preparado, sem deploy realizado
+## Documentação acadêmica
+
+A documentação foi revisada a partir do código implementado, dos testes e do documento da PIT I fornecido pela autora.
+
+1. [Apresentação do projeto](docs/01-apresentacao.md)
+2. [Requisitos funcionais e não funcionais](docs/02-requisitos.md)
+3. [Histórias de usuário](docs/03-historias-de-usuario.md)
+4. [Backlog atualizado](docs/04-backlog.md)
+5. [Arquitetura e tecnologias](docs/05-arquitetura-e-tecnologias.md)
+6. [Banco de dados e diagrama relacional](docs/06-banco-de-dados.md)
+7. [Diagramas UML de casos de uso, classes e sequência](docs/07-diagramas-uml.md)
+8. [Testes e validação](docs/08-testes-e-validacao.md)
+9. [Evolução da PIT I para a PIT II e melhorias de usabilidade](docs/09-evolucao-pit-i-pit-ii.md)
+
+O [índice da pasta docs](docs/README.md) apresenta as fontes e os limites da documentação.
+
+## Aplicação publicada
+
+- [Acessar a loja](https://doce-atelie.onrender.com/)
+- [API](https://doce-atelie-api-vh51.onrender.com/)
+- [Swagger](https://doce-atelie-api-vh51.onrender.com/swagger)
+- [Saúde da API](https://doce-atelie-api-vh51.onrender.com/health)
+
+Os endereços foram informados pela autora. Na revisão documental de 17 de novembro de 2026, o site e a verificação de saúde responderam HTTP 200, com resposta `Healthy` na API. A configuração de produção do repositório utiliza PostgreSQL, mantendo SQLite para desenvolvimento.
+
+## Publicação no Render
 
 ### Estrutura e decisões
 
@@ -139,7 +164,7 @@ npm run build
 
 O teste de integração PostgreSQL exige `TEST_POSTGRES_CONNECTION` apontando para um banco **exclusivo de testes**, configurado no ambiente do terminal. Ele cria e remove apenas um schema de teste aleatório. Sem essa variável, esse teste é explicitamente ignorado. Nunca use a conexão do banco publicado da faculdade nesse teste.
 
-Na preparação desta versão passaram **38 testes do back-end, incluindo PostgreSQL real, 23 testes React e 3 testes da configuração de build do Render**. Também passaram o build do front-end, `dotnet publish`, os fluxos HTTP de compra e contato em SQLite e PostgreSQL, e as verificações de porta, CORS e `/health`. Não foi realizado deploy. A imagem Docker não pôde ser construída localmente porque Docker não está instalado neste ambiente; sua etapa `dotnet publish` foi executada com sucesso fora do container.
+Na preparação desta versão passaram **38 testes do back-end, incluindo PostgreSQL real, 23 testes React e 3 testes da configuração de build do Render**. Também passaram o build do front-end, `dotnet publish`, os fluxos HTTP de compra e contato em SQLite e PostgreSQL, e as verificações de porta, CORS e `/health`. Esse registro corresponde à preparação anterior à publicação. A imagem Docker não pôde ser construída localmente porque Docker não está instalado neste ambiente; sua etapa `dotnet publish` foi executada com sucesso fora do container. Os resultados da execução realizada nesta revisão documental estão em [Testes e validação](docs/08-testes-e-validacao.md), com o teste PostgreSQL condicional identificado separadamente.
 
 Agora existem dois contextos. Ao criar ou conferir migrations, informe o contexto explicitamente:
 
@@ -162,11 +187,11 @@ A versão anterior às melhorias está no commit `87e3ef8`. Cada melhoria desta 
 
 **Verificação manual:** adicione um cupcake e salve/edite um produto para observar os toasts de sucesso. Para observar um erro, use uma URL inválida no cadastro de produto ou interrompa temporariamente a API e tente uma operação. Confira o botão de fechar e passe o mouse ou leve o foco do teclado à notificação para pausar seu desaparecimento. Reative a API antes de continuar.
 
-3. **Pagamento recusado:** a resposta de recusa (HTTP 422) leva à página `/payment-failed`, com explicação e botão **Voltar ao carrinho**. A página recebe foco no título para leitores de tela. Os itens e quantidades permanecem no SQLite, nenhum pedido é aprovado e a aprovação continua no fluxo anterior. Outros erros permanecem no checkout e usam toast.
+3. **Pagamento recusado:** a resposta de recusa (HTTP 422) leva à página `/payment-failed`, com explicação e botão **Voltar ao carrinho**. A página recebe foco no título para leitores de tela. Os itens e quantidades permanecem no banco selecionado, nenhum pedido é aprovado e a aprovação continua no fluxo anterior. Outros erros permanecem no checkout e usam toast.
 
 **Verificação manual:** preencha o checkout e selecione **Recusar pagamento (teste)**. Confirme a navegação para a página de falha, volte ao carrinho e confira as quantidades, inclusive após atualizar a página. Repita o checkout com **Aprovar pagamento** e verifique a confirmação e o histórico. No Swagger, a consulta do pedido do carrinho recusado retorna 404 até uma aprovação.
 
-4. **Fale Conosco:** rota `/contact`, acessível pela navegação principal, com nome, e-mail, assunto e mensagem obrigatórios. O novo endpoint `POST /api/contact-messages` valida e grava os dados na tabela `ContactMessages` do SQLite. A confirmação usa toast com número de protocolo e só ocorre após a gravação. Em falhas, o preenchimento é preservado. Não há envio de e-mail nem listagem pública de mensagens.
+4. **Fale Conosco:** rota `/contact`, acessível pela navegação principal, com nome, e-mail, assunto e mensagem obrigatórios. O endpoint `POST /api/contact-messages` valida e grava os dados na tabela `ContactMessages` do banco selecionado. A confirmação usa toast com número de protocolo e só ocorre após a gravação. Em falhas, o preenchimento é preservado. Não há envio de e-mail nem listagem pública de mensagens.
 
 **Verificação manual:** reinicie a API para carregar o endpoint e aplicar a migration `ContactMessages`. Abra Fale Conosco; tente enviar vazio e com e-mail inválido, depois envie dados fictícios válidos. Confira o toast com protocolo. O endpoint está no Swagger, e os registros podem ser consultados no SQLite com `SELECT Id, Name, Email, Subject, Message, CreatedAt FROM ContactMessages;`. Para um teste HTTP automatizado, execute `node scripts/contact-smoke-test.mjs http://localhost:5000` (cria uma mensagem de demonstração). Os testes do back-end também verificam a persistência em outro contexto SQLite e a atualização de um banco anterior sem perda dos produtos.
 
@@ -249,7 +274,7 @@ SQLite é o padrão também no ambiente Development. O banco `backend/ChallengeU
 
 As migrations são aplicadas na inicialização. Em um banco novo, a API cadastra quatro sabores de exemplo. Imagens ilustradas estão em `frontend/public/images`, sem dependência de serviços externos. Produtos também aceitam URLs de imagem HTTP/HTTPS. Não existe upload de arquivos nesta versão.
 
-Produtos, clientes, carrinhos, itens e pedidos são armazenados no SQLite. O navegador guarda apenas os identificadores do carrinho atual, do cadastro anterior e dos pedidos. Recarregar a página ou reiniciar a API preserva os dados. Limpar o armazenamento do navegador perde os atalhos locais para esses registros; não apaga o banco.
+Produtos, clientes, carrinhos, itens, pedidos e contatos são armazenados no banco selecionado, SQLite local ou PostgreSQL em produção. O navegador guarda apenas os identificadores do carrinho atual, do cadastro anterior e dos pedidos. Recarregar a página ou reiniciar a API preserva os dados. Limpar o armazenamento do navegador perde os atalhos locais para esses registros; não apaga o banco.
 
 O cadastro do cliente pode ser atualizado no checkout. Novas compras no mesmo navegador reaproveitam o cadastro anterior por meio do identificador de carrinho. E-mails são únicos. Em outro navegador, um e-mail já cadastrado requer acesso ao carrinho original; esta versão não inclui login ou recuperação de conta.
 
@@ -319,12 +344,12 @@ Respostas de sucesso retornam diretamente o recurso JSON; não usam o envelope a
 | PUT | `/api/carts/{guid}/customer` | Cadastro/atualização do cliente desse carrinho |
 | POST | `/api/carts/{guid}/checkout` | Endereço, `paymentSimulation` e `expectedTotal` |
 | GET | `/api/carts/{guid}/order` | Pedido originado pelo carrinho |
-| POST | `/api/contact-messages` | Recebe nome, e-mail, assunto e mensagem; grava no SQLite e retorna protocolo (201) |
+| POST | `/api/contact-messages` | Recebe nome, e-mail, assunto e mensagem; grava no banco selecionado e retorna protocolo (201) |
 
 `paymentSimulation` aceita `approved` ou `declined`. `expectedTotal` deve coincidir com o total calculado pelo servidor; divergências retornam 409 para revisão dos preços. A aprovação grava o pedido e fecha o carrinho em uma transação. Repetir a finalização válida retorna o mesmo pedido. A recusa retorna 422 e não cria pedido.
 
 ## Limites da versão acadêmica
 
-Todos os requisitos de compra são implementados localmente. Para disponibilização pública, ainda são necessários autenticação e autorização administrativa, recuperação de conta e políticas de acesso aos dados. Os identificadores aleatórios de carrinho funcionam como chaves de acesso da demonstração e não devem ser compartilhados. O histórico local pertence ao navegador utilizado, sem sincronização entre dispositivos.
+A aplicação publicada é uma demonstração acadêmica. Para uso operacional com dados reais, ainda são necessários autenticação e autorização administrativa, recuperação de conta e políticas de acesso aos dados. Os identificadores aleatórios de carrinho funcionam como chaves de acesso da demonstração e não devem ser compartilhados. O histórico local pertence ao navegador utilizado, sem sincronização entre dispositivos.
 
 Não fazem parte desta versão: estoque, cálculo de frete, upload de imagens, rastreamento logístico e gateway real. O pagamento simulado e a entrega gratuita são decisões explícitas do escopo acadêmico.
